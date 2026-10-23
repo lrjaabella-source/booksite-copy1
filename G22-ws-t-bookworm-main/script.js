@@ -43,6 +43,13 @@ let authenticatedUser = null;
 
 function setAuthenticatedUser(user) {
   authenticatedUser = user;
+  const accountName = user?.name?.trim();
+  if (accountName && (!profile.name || profile.name === "Reader")) {
+    profile.name = accountName;
+    saveProfile();
+    renderProfile();
+  }
+  if (!accountButton) return;
   accountButton.textContent = user ? "Log out" : "Log in";
   accountButton.setAttribute("aria-label", user ? `Log out ${user.name}` : "Log in");
   accountButton.title = user ? `Signed in as ${user.email}` : "Log in or create an account";
@@ -51,18 +58,19 @@ function setAuthenticatedUser(user) {
 function setAuthMode(mode) {
   authMode = mode;
   const isRegistering = mode === "register";
-  authTitle.textContent = isRegistering ? "Create account" : "Log in";
-  authSubmitButton.textContent = isRegistering ? "Create account" : "Log in";
-  authNameGroup.hidden = !isRegistering;
-  authNameInput.required = isRegistering;
-  authNameInput.autocomplete = isRegistering ? "name" : "off";
-  authPasswordInput.autocomplete = isRegistering ? "new-password" : "current-password";
-  authSwitchPrompt.textContent = isRegistering ? "Already have an account?" : "Need an account?";
-  authSwitchButton.textContent = isRegistering ? "Log in" : "Create one";
-  authStatus.textContent = "";
+  if (authTitle) authTitle.textContent = isRegistering ? "Create account" : "Log in";
+  if (authSubmitButton) authSubmitButton.textContent = isRegistering ? "Create account" : "Log in";
+  if (authNameGroup) authNameGroup.hidden = !isRegistering;
+  if (authNameInput) authNameInput.required = isRegistering;
+  if (authNameInput) authNameInput.autocomplete = isRegistering ? "name" : "off";
+  if (authPasswordInput) authPasswordInput.autocomplete = isRegistering ? "new-password" : "current-password";
+  if (authSwitchPrompt) authSwitchPrompt.textContent = isRegistering ? "Already have an account?" : "Need an account?";
+  if (authSwitchButton) authSwitchButton.textContent = isRegistering ? "Log in" : "Create one";
+  if (authStatus) authStatus.textContent = "";
 }
 
 function openAuthDialog() {
+  if (!authOverlay || !authEmailInput) return;
   setAuthMode("login");
   authOverlay.classList.remove("invisible-page");
   authOverlay.classList.add("visible-page");
@@ -71,10 +79,11 @@ function openAuthDialog() {
 }
 
 function closeAuthDialog() {
+  if (!authOverlay) return;
   authOverlay.classList.remove("visible-page");
   authOverlay.classList.add("invisible-page");
   document.body.style.overflow = "";
-  accountButton.focus();
+  accountButton?.focus();
 }
 
 async function loadAuthState() {
@@ -88,6 +97,11 @@ async function loadAuthState() {
 }
 
 async function logOut() {
+  if (!accountButton) {
+    setAuthenticatedUser(null);
+    return;
+  }
+
   accountButton.disabled = true;
   try {
     const response = await fetch("/api/auth/logout", { method: "POST" });
@@ -100,61 +114,73 @@ async function logOut() {
   }
 }
 
-accountButton.addEventListener("click", () => {
-  if (authenticatedUser) logOut();
-  else openAuthDialog();
-});
+if (accountButton) {
+  accountButton.addEventListener("click", () => {
+    if (authenticatedUser) logOut();
+    else openAuthDialog();
+  });
+}
 
-document.querySelector("#close-auth-btn").addEventListener("click", closeAuthDialog);
-authSwitchButton.addEventListener("click", () => {
-  setAuthMode(authMode === "login" ? "register" : "login");
-});
+const closeAuthButton = document.querySelector("#close-auth-btn");
+if (closeAuthButton) {
+  closeAuthButton.addEventListener("click", closeAuthDialog);
+}
 
-authOverlay.addEventListener("click", event => {
-  if (event.target === authOverlay) closeAuthDialog();
-});
+if (authSwitchButton) {
+  authSwitchButton.addEventListener("click", () => {
+    setAuthMode(authMode === "login" ? "register" : "login");
+  });
+}
+
+if (authOverlay) {
+  authOverlay.addEventListener("click", event => {
+    if (event.target === authOverlay) closeAuthDialog();
+  });
+}
 
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && authOverlay.classList.contains("visible-page")) {
+  if (authOverlay && event.key === "Escape" && authOverlay.classList.contains("visible-page")) {
     closeAuthDialog();
   }
 });
 
-authForm.addEventListener("submit", async event => {
-  event.preventDefault();
-  authStatus.textContent = authMode === "register" ? "Creating your account…" : "Logging in…";
-  authSubmitButton.disabled = true;
+if (authForm) {
+  authForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (authStatus) authStatus.textContent = authMode === "register" ? "Creating your account…" : "Logging in…";
+    if (authSubmitButton) authSubmitButton.disabled = true;
 
-  const payload = {
-    email: authEmailInput.value,
-    password: authPasswordInput.value
-  };
-  if (authMode === "register") payload.name = authNameInput.value;
+    const payload = {
+      email: authEmailInput ? authEmailInput.value : "",
+      password: authPasswordInput ? authPasswordInput.value : ""
+    };
+    if (authMode === "register" && authNameInput) payload.name = authNameInput.value;
 
-  try {
-    const response = await fetch(`/api/auth/${authMode}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.includes("application/json")) {
-      const isGitHubPages = location.hostname.endsWith(".github.io");
-      throw new Error(isGitHubPages
-        ? "Sign-in is unavailable on GitHub Pages because it only hosts the frontend. The Express backend must be deployed separately to enable accounts here."
-        : "The account API was not found. Restart the Express server with npm start, then open http://localhost:3000.");
+    try {
+      const response = await fetch(`/api/auth/${authMode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const isGitHubPages = location.hostname.endsWith(".github.io");
+        throw new Error(isGitHubPages
+          ? "Sign-in is unavailable on GitHub Pages because it only hosts the frontend. The Express backend must be deployed separately to enable accounts here."
+          : "The account API was not found. Restart the Express server with npm start, then open http://localhost:3000.");
+      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Authentication failed.");
+      setAuthenticatedUser(data.user);
+      authForm.reset();
+      closeAuthDialog();
+    } catch (error) {
+      if (authStatus) authStatus.textContent = error.message || "Could not connect to the account service.";
+    } finally {
+      if (authSubmitButton) authSubmitButton.disabled = false;
     }
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Authentication failed.");
-    setAuthenticatedUser(data.user);
-    authForm.reset();
-    closeAuthDialog();
-  } catch (error) {
-    authStatus.textContent = error.message || "Could not connect to the account service.";
-  } finally {
-    authSubmitButton.disabled = false;
-  }
-});
+  });
+}
 
 const profileSection =
   document.querySelector("#profile");
@@ -188,6 +214,15 @@ const profileAgeInput =
 
 const profileDescriptionInput =
   document.querySelector("#profile-description");
+
+const profilePhotoInput = document.querySelector("#profile-photo");
+const profilePhotoPreview = document.querySelector("#profile-photo-preview");
+const profilePhotoStatus = document.querySelector("#profile-photo-status");
+const removeProfilePhotoButton = document.querySelector("#remove-profile-photo");
+const profileAvatarImage = document.querySelector(".profile-avatar img");
+const topbarProfileImage = document.querySelector("#profile-btn .user-icon");
+let pendingProfileAvatar = null;
+const DEFAULT_AVATAR = "./resources/user.png";
 
 const PROFILE_STORAGE_KEY =
   "myBookReaderProfile";
@@ -282,6 +317,12 @@ function renderProfile() {
   profileDisplayDescription.textContent =
     profile.description ||
     "Tell us a little about yourself.";
+
+  const avatar = profile.avatar || DEFAULT_AVATAR;
+  if (profileAvatarImage) profileAvatarImage.src = avatar;
+  if (topbarProfileImage) topbarProfileImage.src = avatar;
+  if (profilePhotoPreview) profilePhotoPreview.src = avatar;
+  document.querySelector(".profile-avatar")?.classList.toggle("has-photo", Boolean(profile.avatar));
 }
 
 
@@ -328,6 +369,11 @@ if (editProfileButton) {
       profileDescriptionInput.value =
         profile.description || "";
 
+      pendingProfileAvatar = null;
+      if (profilePhotoInput) profilePhotoInput.value = "";
+      if (profilePhotoStatus) profilePhotoStatus.textContent = "";
+      if (profilePhotoPreview) profilePhotoPreview.src = profile.avatar || DEFAULT_AVATAR;
+
       profileEditCard.classList.remove(
         "invisible-page"
       );
@@ -362,9 +408,53 @@ if (cancelProfileButton) {
         "invisible-page"
       );
 
+      pendingProfileAvatar = null;
+      if (profilePhotoInput) profilePhotoInput.value = "";
+      if (profilePhotoStatus) profilePhotoStatus.textContent = "";
+      if (profilePhotoPreview) profilePhotoPreview.src = profile.avatar || DEFAULT_AVATAR;
+
     }
   );
 
+}
+
+if (profilePhotoInput) {
+  profilePhotoInput.addEventListener("change", () => {
+    const file = profilePhotoInput.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      profilePhotoStatus.textContent = "Choose an image file.";
+      profilePhotoInput.value = "";
+      return;
+    }
+
+    if (file.size > 1024 * 1024) {
+      profilePhotoStatus.textContent = "Image must be 1 MB or smaller.";
+      profilePhotoInput.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      pendingProfileAvatar = String(reader.result);
+      profilePhotoPreview.src = pendingProfileAvatar;
+      profilePhotoStatus.textContent = "";
+    });
+    reader.addEventListener("error", () => {
+      profilePhotoStatus.textContent = "Could not read this image.";
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
+if (removeProfilePhotoButton) {
+  removeProfilePhotoButton.addEventListener("click", () => {
+    pendingProfileAvatar = "";
+    if (profilePhotoInput) profilePhotoInput.value = "";
+    if (profilePhotoPreview) profilePhotoPreview.src = DEFAULT_AVATAR;
+    if (profilePhotoStatus) profilePhotoStatus.textContent = "";
+  });
 }
 
 
@@ -390,9 +480,18 @@ if (profileForm) {
           profileAgeInput.value.trim(),
 
         description:
-          profileDescriptionInput.value.trim()
+          profileDescriptionInput.value.trim(),
+
+        avatar:
+          pendingProfileAvatar === null
+            ? profile.avatar || ""
+            : pendingProfileAvatar
 
       };
+
+      pendingProfileAvatar = null;
+      if (profilePhotoInput) profilePhotoInput.value = "";
+      if (profilePhotoStatus) profilePhotoStatus.textContent = "";
 
       saveProfile();
 
@@ -852,7 +951,12 @@ function loadBooks() {
   }
 
   // First launch: initialize with sample books.
-  const initialBooks = structuredClone(defaultBooks).map(normalizeBookProgress);
+const initialBooks = structuredClone(defaultBooks).map(normalizeBookProgress).map(book => ({
+      ...book,
+      createdAt: book.createdAt || new Date().toISOString(),
+      rating: book.rating || 0,
+      review: book.review || ""
+    }));
 
   localStorage.setItem(
     STORAGE_KEY,
@@ -876,7 +980,14 @@ function normalizeBookProgress(book) {
       ? "finished"
       : "current";
 
-  return { ...book, currentPage, status };
+  return {
+    ...book,
+    currentPage,
+    status,
+    createdAt: book.createdAt || new Date().toISOString(),
+    rating: Number(book.rating) || 0,
+    review: book.review || ""
+  };
 }
 
 let books = loadBooks();
@@ -1283,6 +1394,9 @@ function getBookFromForm() {
       document.querySelector("#book-current-page").value
     );
 
+  const ratingValue = Number(document.querySelector("#book-rating").value || 0);
+  const reviewValue = String(document.querySelector("#book-review").value || "").trim();
+
   /*
      Make sure current page is valid.
   */
@@ -1333,6 +1447,9 @@ function getBookFromForm() {
 
     status,
 
+    rating: Number.isFinite(ratingValue) ? Math.max(0, Math.min(5, ratingValue)) : 0,
+    review: reviewValue,
+
     cover:
       document
         .querySelector("#book-cover")
@@ -1375,6 +1492,9 @@ function fillEditForm(book) {
 
   document.querySelector("#book-description").value =
     book.description || "";
+
+  document.querySelector("#book-rating").value = String(book.rating || 0);
+  document.querySelector("#book-review").value = book.review || "";
 
   const statusRadio =
     document.querySelector(
@@ -1437,6 +1557,15 @@ function createBookCover(book, className = "") {
   if (book.cover) {
     cover.style.backgroundImage =
       `url("${book.cover}")`;
+  } else {
+    cover.style.background = "linear-gradient(135deg, #5d3b25, #c79d64)";
+    cover.style.position = "relative";
+    cover.style.display = "grid";
+    cover.style.placeItems = "center";
+    cover.style.color = "#FAEFDD";
+    cover.style.fontWeight = "700";
+    cover.style.fontSize = "18px";
+    cover.textContent = "BOOK";
   }
 
   return cover;
@@ -1488,6 +1617,75 @@ function createEditButton(book) {
     }
   );
 
+  return button;
+}
+
+function createDeleteButton(bookId) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("delete-book-btn");
+  button.textContent = "Delete";
+  button.addEventListener("click", () => {
+    const index = books.findIndex(book => book.id === bookId);
+    if (index === -1) return;
+    books.splice(index, 1);
+    saveBooks();
+    renderBooks();
+  });
+  return button;
+}
+
+function createProgressControl(book) {
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("mini-progress-control");
+
+  const label = document.createElement("label");
+  label.textContent = "Update progress";
+
+  const input = document.createElement("input");
+  input.type = "range";
+  input.min = "0";
+  input.max = String(book.pages || 1);
+  input.value = String(book.currentPage || 0);
+
+  const value = document.createElement("span");
+  value.textContent = `${book.currentPage || 0} / ${book.pages || 0}`;
+
+  input.addEventListener("input", () => {
+    const updated = Number(input.value);
+    value.textContent = `${updated} / ${book.pages || 0}`;
+  });
+
+  input.addEventListener("change", () => {
+    const current = Number(input.value);
+    const bookIndex = books.findIndex(item => item.id === book.id);
+    if (bookIndex === -1) return;
+    const previousPage = Number(books[bookIndex].currentPage || 0);
+    books[bookIndex].currentPage = Math.min(Math.max(current, 0), Number(book.pages || current));
+    books[bookIndex].status = books[bookIndex].currentPage === 0 ? "want" : books[bookIndex].currentPage >= Number(book.pages || books[bookIndex].currentPage) ? "finished" : "current";
+    saveBooks();
+    if (books[bookIndex].currentPage > previousPage) recordReadingActivity();
+    renderBooks();
+  });
+
+  wrapper.append(label, input, value);
+  return wrapper;
+}
+
+function createFinishButton(book) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.classList.add("mark-finished-btn");
+  button.textContent = book.status === "finished" ? "Completed" : "Mark as finished";
+  button.disabled = book.status === "finished";
+  button.addEventListener("click", () => {
+    const bookIndex = books.findIndex(item => item.id === book.id);
+    if (bookIndex === -1) return;
+    books[bookIndex].status = "finished";
+    books[bookIndex].currentPage = Number(books[bookIndex].pages || 0);
+    saveBooks();
+    renderBooks();
+  });
   return button;
 }
 
@@ -1640,6 +1838,8 @@ function addBookToCurrentReads(book) {
       "description"
     );
 
+  const ratingText = book.rating ? `Rating: ${book.rating}/5` : "No rating yet";
+  const rating = createTextElement("p", ratingText, "book-rating");
 
   /* ==============================
      READING PROGRESS
@@ -1719,6 +1919,8 @@ function addBookToCurrentReads(book) {
   bookmarkArea.classList.add(
     "bookmark-area"
   );
+
+  const progressControl = createProgressControl(book);
 
 
   const bookmarkLabel =
@@ -1877,7 +2079,8 @@ function addBookToCurrentReads(book) {
 
   const editButton =
     createEditButton(book);
-
+  const deleteButton = createDeleteButton(book.id);
+  const finishButton = createFinishButton(book);
 
   /* ==============================
      BUILD CARD
@@ -1890,14 +2093,17 @@ function addBookToCurrentReads(book) {
   info.appendChild(genre);
 
   info.appendChild(description);
+  info.appendChild(rating);
 
   info.appendChild(progress);
 
   info.appendChild(progressLabels);
-
+  info.appendChild(progressControl);
   info.appendChild(bookmarkArea);
 
+  info.appendChild(finishButton);
   info.appendChild(editButton);
+  info.appendChild(deleteButton);
 
 
   card.appendChild(cover);
@@ -1969,13 +2175,19 @@ function addBookToWantList(book) {
 
   const editButton =
     createEditButton(book);
+  const deleteButton = createDeleteButton(book.id);
+  const progressControl = createProgressControl(book);
+  const finishButton = createFinishButton(book);
 
   info.appendChild(title);
   info.appendChild(author);
   info.appendChild(genre);
   info.appendChild(description);
   info.appendChild(pageCount);
+  info.appendChild(progressControl);
+  info.appendChild(finishButton);
   info.appendChild(editButton);
+  info.appendChild(deleteButton);
 
   card.appendChild(cover);
   card.appendChild(info);
@@ -2040,6 +2252,10 @@ function addBookToFinished(book) {
 
   const editButton =
     createEditButton(book);
+  const deleteButton = createDeleteButton(book.id);
+  const ratingText = book.rating ? `Rating: ${book.rating}/5` : "No rating yet";
+  const rating = createTextElement("p", ratingText, "book-rating");
+  const finishButton = createFinishButton(book);
 
   card.appendChild(cover);
   card.appendChild(title);
@@ -2047,7 +2263,10 @@ function addBookToFinished(book) {
   card.appendChild(genre);
   card.appendChild(pageCount);
   card.appendChild(description);
+  card.appendChild(rating);
+  card.appendChild(finishButton);
   card.appendChild(editButton);
+  card.appendChild(deleteButton);
 
   finishedList.appendChild(card);
 }
@@ -2280,51 +2499,43 @@ function updateDashboardStats() {
   const wantToReadStat =
     document.querySelector("#want-to-read-stat");
 
+  const totalPagesReadStat = document.querySelector("#total-pages-read-stat");
+  const favoriteGenreStat = document.querySelector("#favorite-genre-stat");
+  const booksPerMonthStat = document.querySelector("#books-per-month-stat");
+  const yearlyGoalBar = document.querySelector("#yearly-goal-bar");
+  const yearlyGoalStatus = document.querySelector("#yearly-goal-status");
 
-  const booksRead =
-    books.filter(
-      book => book.status === "finished"
-    ).length;
+  const booksRead = books.filter(book => book.status === "finished").length;
+  const totalBooks = books.length;
+  const currentReads = books.filter(book => book.status === "current").length;
+  const wantToRead = books.filter(book => book.status === "want").length;
+  const totalPagesRead = books.reduce((sum, book) => sum + Math.min(Number(book.currentPage || 0), Number(book.pages || 0)), 0);
 
+  const genreCounts = books.reduce((counts, book) => {
+    if (!book.genre) return counts;
+    counts[book.genre] = (counts[book.genre] || 0) + 1;
+    return counts;
+  }, {});
 
-  const totalBooks =
-    books.length;
+  const favoriteGenre = Object.entries(genreCounts).sort((a, b) => b[1] - a[1])[0];
+  const booksThisMonth = books.filter(book => {
+    if (!book.createdAt) return false;
+    const d = new Date(book.createdAt);
+    return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear();
+  }).length;
 
+  const yearlyGoalTarget = 52;
+  const yearlyProgress = Math.min(100, (booksRead / yearlyGoalTarget) * 100);
 
-  const currentReads =
-    books.filter(
-      book => book.status === "current"
-    ).length;
-
-
-  const wantToRead =
-    books.filter(
-      book => book.status === "want"
-    ).length;
-
-
-  if (booksReadStat) {
-    booksReadStat.textContent =
-      booksRead;
-  }
-
-
-  if (totalBooksStat) {
-    totalBooksStat.textContent =
-      totalBooks;
-  }
-
-
-  if (currentReadsStat) {
-    currentReadsStat.textContent =
-      currentReads;
-  }
-
-
-  if (wantToReadStat) {
-    wantToReadStat.textContent =
-      wantToRead;
-  }
+  if (booksReadStat) booksReadStat.textContent = booksRead;
+  if (totalBooksStat) totalBooksStat.textContent = totalBooks;
+  if (currentReadsStat) currentReadsStat.textContent = currentReads;
+  if (wantToReadStat) wantToReadStat.textContent = wantToRead;
+  if (totalPagesReadStat) totalPagesReadStat.textContent = totalPagesRead;
+  if (favoriteGenreStat) favoriteGenreStat.textContent = favoriteGenre ? favoriteGenre[0] : "—";
+  if (booksPerMonthStat) booksPerMonthStat.textContent = booksThisMonth;
+  if (yearlyGoalBar) yearlyGoalBar.style.width = `${yearlyProgress}%`;
+  if (yearlyGoalStatus) yearlyGoalStatus.textContent = `${booksRead} / ${yearlyGoalTarget} books completed`;
 }
 
 /* =================================
@@ -2336,6 +2547,30 @@ const genreFilters =
     ".genre-filter-select"
   );
 
+const sortFilters = document.querySelectorAll(".sort-filter-select");
+
+function getSortedBooks(list) {
+  const selected = document.querySelector("#bookshelf-sort-filter")?.value || "recent";
+  const sorted = [...list];
+
+  switch (selected) {
+    case "title":
+      sorted.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+      break;
+    case "author":
+      sorted.sort((a, b) => (a.author || "").localeCompare(b.author || ""));
+      break;
+    case "progress":
+      sorted.sort((a, b) => Number(b.currentPage || 0) - Number(a.currentPage || 0));
+      break;
+    case "recent":
+    default:
+      sorted.sort((a, b) => Number(new Date(b.createdAt || 0)) - Number(new Date(a.createdAt || 0)));
+      break;
+  }
+
+  return sorted;
+}
 
 /* =================================
    GET AVAILABLE GENRES
@@ -2564,6 +2799,12 @@ genreFilters.forEach(select => {
 
 });
 
+sortFilters.forEach(select => {
+  select.addEventListener("change", () => {
+    renderBooks();
+  });
+});
+
 /* =================================
    RENDER ALL BOOKS
 ================================= */
@@ -2597,7 +2838,9 @@ function renderBooks() {
      into My Bookshelf
   */
 
-  books.forEach(book => {
+  const visibleBooks = getSortedBooks(books);
+
+  visibleBooks.forEach(book => {
     addBookToBookshelf(book);
   });
 
@@ -2739,6 +2982,7 @@ addBookForm.addEventListener(
 
       books.push({
         id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
         ...formBook
       });
 
@@ -3087,6 +3331,7 @@ document.addEventListener('click', function (event) {
       }
 
       function getReaderName() {
+        const accountName = authenticatedUser?.name?.trim();
         const profileName = document
           .getElementById('profile-display-name')
           ?.textContent
@@ -3094,6 +3339,10 @@ document.addEventListener('click', function (event) {
 
         const enteredName = authName?.value?.trim();
         const email = authEmail?.value?.trim();
+
+        if (accountName) {
+          return accountName;
+        }
 
         if (profileName && profileName.toLowerCase() !== 'reader') {
           return profileName;
@@ -3138,7 +3387,7 @@ document.addEventListener('click', function (event) {
 
       // Open the existing login dialog.
       loginButton?.addEventListener('click', () => {
-        accountButton?.click();
+        openAuthDialog();
       });
 
       // Check whether submitting the login form closes the dialog.

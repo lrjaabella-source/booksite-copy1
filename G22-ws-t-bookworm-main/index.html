@@ -8,7 +8,6 @@
 
   <link rel="stylesheet" href="./styles.css">
   <link rel="icon" type="image/png" href="./resources/bookworm v3.jpg">
-  <script src="./script.js"></script>
 </head>
 
 <body>
@@ -83,6 +82,23 @@
           <textarea id="book-description" placeholder="Enter book description" rows="4"></textarea>
         </div>
 
+        <div class="form-group">
+          <label for="book-rating">Rating</label>
+          <select id="book-rating">
+            <option value="0">No rating</option>
+            <option value="1">1 / 5</option>
+            <option value="2">2 / 5</option>
+            <option value="3">3 / 5</option>
+            <option value="4">4 / 5</option>
+            <option value="5">5 / 5</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="book-review">Review</label>
+          <textarea id="book-review" placeholder="Optional review or notes" rows="3"></textarea>
+        </div>
+
         <div class="form-actions">
           <button id="discard-btn" type="button">Discard</button>
           <button id="save-btn" type="submit">Save</button>
@@ -115,8 +131,6 @@
     <button class="user-btn" id="profile-btn" type="button" aria-label="Open profile" hidden>
       <img class="user-icon" src="./resources/user.png" alt="">
     </button>
-
-    <button class="account-btn" id="account-btn" type="button">Log in</button>
   </header>
 
   <!-- GUEST WELCOME PAGE -->
@@ -211,6 +225,15 @@
               </div>
             </div>
           </article>
+
+          <article class="card goal-card" aria-labelledby="yearly-goal-title">
+            <p class="eyebrow">YEARLY GOAL</p>
+            <h2 id="yearly-goal-title"><span id="yearly-goal-target">52</span> books</h2>
+            <div class="goal-bar" aria-label="Reading goal progress">
+              <span id="yearly-goal-bar" style="width: 0%;"></span>
+            </div>
+            <p id="yearly-goal-status" class="streak-best">0 / 52 books completed</p>
+          </article>
         </div>
 
         <!-- STATISTICS -->
@@ -234,6 +257,21 @@
             <span>BOOKS READ</span>
             <strong id="books-read-stat">0</strong>
           </article>
+
+          <article class="stat-card stat-detail-card" tabindex="0">
+            <span>TOTAL PAGES</span>
+            <strong id="total-pages-read-stat">0</strong>
+          </article>
+
+          <article class="stat-card stat-detail-card" tabindex="0">
+            <span>FAVORITE GENRE</span>
+            <strong id="favorite-genre-stat">—</strong>
+          </article>
+
+          <article class="stat-card stat-detail-card" tabindex="0">
+            <span>BOOKS / MONTH</span>
+            <strong id="books-per-month-stat">0</strong>
+          </article>
         </section>
       </section>
 
@@ -250,6 +288,14 @@
             <label for="bookshelf-genre-filter">Filter by Genre</label>
             <select id="bookshelf-genre-filter" class="genre-filter-select" data-section="bookshelf">
               <option value="all">All Genres</option>
+            </select>
+
+            <label for="bookshelf-sort-filter">Sort by</label>
+            <select id="bookshelf-sort-filter" class="sort-filter-select" data-section="bookshelf">
+              <option value="recent">Recently added</option>
+              <option value="title">Title</option>
+              <option value="author">Author</option>
+              <option value="progress">Progress</option>
             </select>
           </div>
         </header>
@@ -419,6 +465,17 @@
             <header>
               <h2 id="profile-edit-title">Edit Profile</h2>
             </header>
+
+            <div class="profile-photo-field">
+              <img id="profile-photo-preview" src="./resources/user.png" alt="Profile photo preview">
+              <div class="profile-photo-controls">
+                <label for="profile-photo">Profile picture</label>
+                <input type="file" id="profile-photo" accept="image/png,image/jpeg,image/webp,image/gif">
+                <small class="form-help">Choose an image up to 1 MB.</small>
+                <p id="profile-photo-status" class="profile-photo-status" aria-live="polite"></p>
+                <button type="button" id="remove-profile-photo">Remove picture</button>
+              </div>
+            </div>
 
             <div class="form-group">
               <label for="profile-name">Name</label>
