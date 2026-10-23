@@ -3204,10 +3204,9 @@ if (darkModeToggle) {
   function updateDarkModeButton() {
     const isDark = document.body.classList.contains("dark-mode");
 
-    darkModeToggle.textContent = isDark
-      ? "☀️ Light Mode"
-      : "🌙 Dark Mode";
-
+    darkModeToggle.querySelector("span").textContent = isDark ? "\u2600" : "\u263e";
+    darkModeToggle.setAttribute("aria-label", `Switch to ${isDark ? "light" : "dark"} mode`);
+    darkModeToggle.title = `Switch to ${isDark ? "light" : "dark"} mode`;
     darkModeToggle.setAttribute("aria-pressed", String(isDark));
   }
 

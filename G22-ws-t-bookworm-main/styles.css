@@ -2521,17 +2521,30 @@ button:hover {
 
 /* DARK MODE SETTING */
 .dark-mode-toggle {
-  padding: 9px 12px;
-  border: 1px solid #d8d8d8;
-  border-radius: 8px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--cream);
+  color: var(--brown);
+  font-size: 23px;
+  line-height: 1;
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .dark-mode-toggle:hover {
-  opacity: 0.8;
+  background: #F7E6CA;
+  transform: translateY(-2px);
+}
+
+.dark-mode-toggle:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }
 
 /* DARK MODE COLORS */
@@ -2541,7 +2554,6 @@ body.dark-mode {
 }
 
 body.dark-mode .topbar,
-body.dark-mode .sidebar,
 body.dark-mode .card,
 body.dark-mode .stat-card,
 body.dark-mode .profile-card,
@@ -2556,11 +2568,49 @@ body.dark-mode .book-tile {
   border-color: #3b4350;
 }
 
+body.dark-mode .content,
+body.dark-mode .sidebar,
+body.dark-mode .guest-page {
+  background: #171a21;
+  color: #e8eaf0;
+}
+
+body.dark-mode .sidebar {
+  background: #1e242d;
+}
+
+body.dark-mode .streak-card,
+body.dark-mode .sidebar-card,
+body.dark-mode .search-panel,
+body.dark-mode .auth-dialog,
+body.dark-mode .profile-edit-card {
+  background: #232833;
+  color: #e8eaf0;
+  border-color: #3b4350;
+}
+
 body.dark-mode .muted,
 body.dark-mode .description,
 body.dark-mode .book-author,
-body.dark-mode .book-genre {
+body.dark-mode .book-genre,
+body.dark-mode .eyebrow,
+body.dark-mode .pages,
+body.dark-mode .progress-labels,
+body.dark-mode .profile-info p,
+body.dark-mode .profile-info h2,
+body.dark-mode .streak-message,
+body.dark-mode .streak-best,
+body.dark-mode .search-hint,
+body.dark-mode .search-result-details p,
+body.dark-mode .search-empty-state {
   color: #b7bfcc;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode .profile-photo-controls label {
+  color: #f3f4f6;
 }
 
 body.dark-mode input,
@@ -2592,7 +2642,24 @@ body.dark-mode .sidebar-card {
   border-color: #3b4350;
 }
 
-body.dark-mode .dark-mode-toggle {
+body.dark-mode .dark-mode-toggle,
+body.dark-mode .user-btn {
+  background: #232833;
+  color: #f3f4f6;
+  border-color: #454e5c;
+}
+
+body.dark-mode .side-nav a,
+body.dark-mode .genre-filter label,
+body.dark-mode .form-group label {
+  color: #e8eaf0;
+}
+
+body.dark-mode .search-result-card,
+body.dark-mode .search-input-wrapper,
+body.dark-mode .auth-field input,
+body.dark-mode .profile-photo-field {
+  background: #1c212b;
   color: #e8eaf0;
   border-color: #454e5c;
 }
