@@ -2468,6 +2468,88 @@ button:hover {
   font-size: 13px;
 }
 
+/*darkmode*/
+
+
+/* DARK MODE SETTING */
+.dark-mode-toggle {
+  padding: 9px 12px;
+  border: 1px solid #d8d8d8;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dark-mode-toggle:hover {
+  opacity: 0.8;
+}
+
+/* DARK MODE COLORS */
+body.dark-mode {
+  background: #171a21;
+  color: #e8eaf0;
+}
+
+body.dark-mode .topbar,
+body.dark-mode .sidebar,
+body.dark-mode .card,
+body.dark-mode .stat-card,
+body.dark-mode .profile-card,
+body.dark-mode .profile-edit-card,
+body.dark-mode .add-form-card,
+body.dark-mode .reading-card,
+body.dark-mode .want-card,
+body.dark-mode .finished-card,
+body.dark-mode .book-tile {
+  background: #232833;
+  color: #e8eaf0;
+  border-color: #3b4350;
+}
+
+body.dark-mode .muted,
+body.dark-mode .description,
+body.dark-mode .book-author,
+body.dark-mode .book-genre {
+  color: #b7bfcc;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background: #1c212b;
+  color: #e8eaf0;
+  border-color: #454e5c;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+  color: #a0a9b8;
+}
+
+body.dark-mode .side-nav a {
+  color: #e8eaf0;
+}
+
+body.dark-mode .side-nav a:hover,
+body.dark-mode .side-nav a.selected-section {
+  background: #343d4b;
+  color: #ffffff;
+}
+
+body.dark-mode .sidebar-card {
+  background: #232833;
+  color: #e8eaf0;
+  border-color: #3b4350;
+}
+
+body.dark-mode .dark-mode-toggle {
+  color: #e8eaf0;
+  border-color: #454e5c;
+}
+
+
 @keyframes search-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }

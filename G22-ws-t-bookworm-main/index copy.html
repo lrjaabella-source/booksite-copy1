@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Book Reader</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" type="image/png" href="./resources/bookworm v3.jpg">
+</head>
+
+<body>
+  <!-- ADD / EDIT BOOK MODAL -->
+  <div class="modal-overlay invisible-page" role="dialog" aria-modal="true" aria-labelledby="book-form-title">
+    <article class="add-form-card">
+      <form id="add-book-form">
+        <header>
+          <h2 id="book-form-title" class="modal-title">Add Book</h2>
+        </header>
+
+        <div class="form-group">
+          <label for="book-title">Book Title *</label>
+          <input type="text" id="book-title" placeholder="Enter book title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="book-author">Author *</label>
+          <input type="text" id="book-author" placeholder="Enter author name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="book-genre">Genre *</label>
+          <select id="book-genre" required>
+            <option value="" disabled selected>Select a genre</option>
+            <option value="Adventure">Adventure</option>
+            <option value="Biography">Biography</option>
+            <option value="Classic">Classic</option>
+            <option value="Dystopian">Dystopian</option>
+            <option value="Fantasy">Fantasy</option>
+            <option value="Fiction">Fiction</option>
+            <option value="Finance">Finance</option>
+            <option value="Historical Fiction">Historical Fiction</option>
+            <option value="History">History</option>
+            <option value="Horror">Horror</option>
+            <option value="Literary Fiction">Literary Fiction</option>
+            <option value="Memoir">Memoir</option>
+            <option value="Mystery">Mystery</option>
+            <option value="Non-Fiction">Non-Fiction</option>
+            <option value="Post-Apocalyptic">Post-Apocalyptic</option>
+            <option value="Productivity">Productivity</option>
+            <option value="Romance">Romance</option>
+            <option value="Science Fiction">Science Fiction</option>
+            <option value="Self-Help">Self-Help</option>
+            <option value="Thriller">Thriller</option>
+            <option value="Young Adult">Young Adult</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="book-pages">Pages *</label>
+          <input type="number" id="book-pages" placeholder="Enter number of pages" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="book-current-page">Current Page</label>
+          <input type="number" id="book-current-page" placeholder="Enter your current page" min="0" value="0" required>
+          <small class="form-help">Enter the page you have currently reached.</small>
+        </div>
+
+        <p class="form-help book-status-help">
+          Status updates automatically: page 0 is Want to Read, pages 1 through the last page are Currently Reading, and the last page is Finished.
+        </p>
+
+        <div class="form-group">
+          <label for="book-cover">Cover Image</label>
+          <input type="url" id="book-cover" placeholder="Optional cover image URL">
+        </div>
+
+        <div class="form-group">
+          <label for="book-description">Description</label>
+          <textarea id="book-description" placeholder="Enter book description" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button id="discard-btn" type="button">Discard</button>
+          <button id="save-btn" type="submit">Save</button>
+        </div>
+      </form>
+    </article>
+  </div>
+
+  <!-- TOP NAVIGATION -->
+  <header class="topbar">
+    <a href="#home" class="logo" id="logo-btn" aria-label="Go to dashboard">
+      <img src="./resources/bookworm v3.png" alt="Bookworm logo">
+    </a>
+
+    <strong class="site-title">Bookworm</strong>
+
+    <button class="hamburger-btn" id="hamburger-btn" type="button" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <button id="search-btn" class="header-search-btn" type="button" aria-label="Search books" title="Search books" hidden>
+      <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+    </button>
+
+    <button class="user-btn" id="profile-btn" type="button" aria-label="Open profile" hidden>
+      <img class="user-icon" src="./resources/user.png" alt="">
+    </button>
+
+    <button class="account-btn" id="account-btn" type="button">Log in</button>
+  </header>
+
+  <!-- GUEST WELCOME PAGE -->
+  <main id="guest-page" class="guest-page" aria-labelledby="guest-title">
+    <section class="guest-welcome">
+      <p class="eyebrow">YOUR PERSONAL READING SPACE</p>
+      <h1 id="guest-title">Welcome to Bookworm</h1>
+      <p class="muted">Discover stories, keep track of your reading, and build your own library.</p>
+      <button id="guest-login-btn" class="auth-submit-btn" type="button">Log in to your account</button>
+      <p class="guest-note">Log in or create an account to access your bookshelf and reading profile.</p>
+    </section>
+  </main>
+
+  <!-- APPLICATION: HIDDEN BEFORE LOGIN -->
+  <div class="layout" id="app-layout" hidden>
+    <aside class="sidebar">
+      <div id="mobile-menu-header" class="mobile-menu-header"></div>
+
+      <h2>My Library</h2>
+
+      <div class="mobile-menu-search">
+        <label for="mobile-book-search-input">Search books</label>
+        <input id="mobile-book-search-input" type="search" placeholder="Title, author, or genre..." autocomplete="off">
+        <div id="mobile-search-results" class="mobile-search-results" aria-live="polite" hidden></div>
+      </div>
+
+      <nav class="side-nav" aria-label="Library navigation">
+        <a href="#home" class="selected-section">⌂ Dashboard</a>
+        <a href="#bookshelf">▦ My Bookshelf</a>
+        <a href="#current">▸ Current Reads</a>
+        <a href="#want">♡ Want to Read</a>
+        <a href="#finished">✓ Finished Books</a>
+      </nav>
+
+      <section class="sidebar-card" aria-labelledby="daily-streak-title">
+        <h3 id="daily-streak-title" class="small-label">DAILY STREAKS</h3>
+        <div id="streak-week" class="streak-week" role="group" aria-label="Weekly reading activity"></div>
+        <p id="streak-week-summary" class="streak-week-summary">Your week at a glance</p>
+      </section>
+    </aside>
+
+    <main class="content">
+      <!-- DASHBOARD -->
+      <section id="home" class="page" aria-labelledby="home-title">
+        <header class="welcome-row">
+          <div>
+            <p class="eyebrow">WELCOME BACK</p>
+            <h1 id="home-title">Good morning, Reader!</h1>
+            <p class="muted">Keep reading and discover your next favorite book.</p>
+          </div>
+        </header>
+
+        <div class="dashboard-grid">
+          <article class="card streak-card" aria-live="polite" aria-labelledby="streak-title">
+            <p class="eyebrow">DAILY READING</p>
+            <h2 id="streak-title">🔥 <span id="current-streak">0</span> day streak</h2>
+            <p id="streak-message" class="streak-message">Log pages read each day to build a streak.</p>
+            <p class="streak-best">Best: <strong id="best-streak">0</strong> days</p>
+          </article>
+
+          <article class="card add-card">
+            <button class="add-book" type="button">
+              <span aria-hidden="true">+</span>
+              <strong>Add Book</strong>
+            </button>
+          </article>
+
+          <article class="card current-card">
+            <header class="section-title">
+              <div>
+                <p class="eyebrow">CURRENTLY READING</p>
+                <h2>Book Title</h2>
+              </div>
+              <span class="pages">150 / 300 pages</span>
+            </header>
+
+            <div class="book-summary">
+              <figure class="cover placeholder" aria-label="Book cover"></figure>
+              <div class="book-info">
+                <p class="book-author">Author Name</p>
+                <p class="book-genre">Genre</p>
+                <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sed nisi vitae metus hendrerit euismod quis feugiat augue.</p>
+
+                <div class="progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                  <span style="width: 50%;"></span>
+                </div>
+
+                <div class="progress-labels">
+                  <span>50%</span>
+                  <span>150 / 300 pages</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- STATISTICS -->
+        <section class="stats-grid" aria-label="Library statistics">
+          <article class="stat-card" data-section="bookshelf" tabindex="0">
+            <span>MY BOOKS</span>
+            <strong id="total-books-stat">0</strong>
+          </article>
+
+          <article class="stat-card" data-section="current" tabindex="0">
+            <span>CURRENT READS</span>
+            <strong id="current-reads-stat">0</strong>
+          </article>
+
+          <article class="stat-card" data-section="want" tabindex="0">
+            <span>WANT TO READ</span>
+            <strong id="want-to-read-stat">0</strong>
+          </article>
+
+          <article class="stat-card" data-section="finished" tabindex="0">
+            <span>BOOKS READ</span>
+            <strong id="books-read-stat">0</strong>
+          </article>
+        </section>
+      </section>
+
+      <!-- MY BOOKSHELF -->
+      <section id="bookshelf" class="page invisible-page" aria-labelledby="bookshelf-title">
+        <header class="page-heading">
+          <div>
+            <p class="eyebrow">YOUR LIBRARY</p>
+            <h1 id="bookshelf-title">My Bookshelf</h1>
+            <p class="muted">Browse all the books in your library.</p>
+          </div>
+
+          <div class="genre-filter">
+            <label for="bookshelf-genre-filter">Filter by Genre</label>
+            <select id="bookshelf-genre-filter" class="genre-filter-select" data-section="bookshelf">
+              <option value="all">All Genres</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="bookshelf-grid">
+          <button class="book-tile add-tile" type="button">
+            <span aria-hidden="true">+</span>
+            <strong>Add Book</strong>
+          </button>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780525559474-L.jpg');" aria-label="The Midnight Library book cover"></figure>
+            <strong>The Midnight Library</strong>
+          </article>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780735211292-L.jpg');" aria-label="Atomic Habits book cover"></figure>
+            <strong>Atomic Habits</strong>
+          </article>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780441172719-L.jpg');" aria-label="Dune book cover"></figure>
+            <strong>Dune</strong>
+          </article>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780547928227-L.jpg');" aria-label="The Hobbit book cover"></figure>
+            <strong>The Hobbit</strong>
+          </article>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780451524935-L.jpg');" aria-label="1984 book cover"></figure>
+            <strong>1984</strong>
+          </article>
+
+          <article class="book-tile">
+            <figure class="cover" style="background-image: url('https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg');" aria-label="The Alchemist book cover"></figure>
+            <strong>The Alchemist</strong>
+          </article>
+        </div>
+      </section>
+
+      <!-- CURRENT READS -->
+      <section id="current" class="page invisible-page" aria-labelledby="current-title">
+        <header class="page-heading">
+          <div>
+            <p class="eyebrow">READING NOW</p>
+            <h1 id="current-title">Current Reads <small id="current-count">0</small></h1>
+          </div>
+
+          <div class="genre-filter">
+            <label for="current-genre-filter">Filter by Genre</label>
+            <select id="current-genre-filter" class="genre-filter-select" data-section="current">
+              <option value="all">All Genres</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="reading-list">
+          <article class="reading-card">
+            <figure class="cover large-cover" aria-label="Book cover"></figure>
+            <div class="reading-info">
+              <h2>Book Title</h2>
+              <p>Author Name</p>
+              <p>Genre</p>
+              <p class="description">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sed nisi vitae metus hendrerit euismod quis feugiat augue.</p>
+
+              <div class="progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                <span style="width: 50%;"></span>
+              </div>
+
+              <div class="progress-labels">
+                <span>150 / 300 pages</span>
+                <span>50%</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- WANT TO READ -->
+      <section id="want" class="page invisible-page" aria-labelledby="want-title">
+        <header class="page-heading">
+          <div>
+            <p class="eyebrow">YOUR READING LIST</p>
+            <h1 id="want-title">Want to Read <small id="want-count">0</small></h1>
+          </div>
+
+          <div class="genre-filter">
+            <label for="want-genre-filter">Filter by Genre</label>
+            <select id="want-genre-filter" class="genre-filter-select" data-section="want">
+              <option value="all">All Genres</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="want-list">
+          <article class="want-card">
+            <figure class="cover medium-cover" aria-label="Book cover"></figure>
+            <div>
+              <h2>Book Title</h2>
+              <p>Author Name</p>
+              <p>Genre</p>
+              <p class="description">A short description of the book goes here.</p>
+              <span class="page-count">250 pages</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- FINISHED BOOKS -->
+      <section id="finished" class="page invisible-page" aria-labelledby="finished-title">
+        <header class="page-heading">
+          <div>
+            <p class="eyebrow">READING HISTORY</p>
+            <h1 id="finished-title">Finished Books <small id="finished-count">0</small></h1>
+          </div>
+
+          <div class="genre-filter">
+            <label for="finished-genre-filter">Filter by Genre</label>
+            <select id="finished-genre-filter" class="genre-filter-select" data-section="finished">
+              <option value="all">All Genres</option>
+            </select>
+          </div>
+        </header>
+
+        <div class="finished-grid">
+          <article class="finished-card">
+            <figure class="cover finished-cover" aria-label="Book cover"></figure>
+            <h2>Book Title</h2>
+            <p>Author Name</p>
+            <p>Genre</p>
+            <p>198 pages</p>
+            <p class="description">A short review or description about this finished book.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- PROFILE -->
+      <section id="profile" class="page invisible-page" aria-labelledby="profile-title">
+        <header class="page-heading">
+          <div>
+            <p class="eyebrow">YOUR PROFILE</p>
+            <h1 id="profile-title">My Profile</h1>
+            <p class="muted">Customize your reader profile.</p>
+          </div>
+        </header>
+
+        <article class="profile-card">
+          <figure class="profile-avatar">
+            <img src="./resources/user.png" alt="Profile avatar">
+          </figure>
+
+          <div class="profile-info">
+            <h2 id="profile-display-name">Reader</h2>
+            <p id="profile-display-age">Age not set</p>
+            <p id="profile-display-description" class="profile-description">Tell us a little about yourself.</p>
+          </div>
+
+          <button type="button" class="edit-profile-btn" id="edit-profile-btn">Edit Profile</button>
+          <button type="button" id="logout-btn" class="logout-btn">Log out</button>
+        </article>
+
+        <!-- PROFILE EDIT FORM -->
+        <section class="profile-edit-card invisible-page" id="profile-edit-card" aria-labelledby="profile-edit-title">
+          <form id="profile-form">
+            <header>
+              <h2 id="profile-edit-title">Edit Profile</h2>
+            </header>
+
+            <div class="form-group">
+              <label for="profile-name">Name</label>
+              <input type="text" id="profile-name" placeholder="Enter your name" maxlength="50" required>
+            </div>
+
+            <div class="form-group">
+              <label for="profile-age">Age</label>
+              <input type="number" id="profile-age" placeholder="Enter your age" min="1" max="120">
+            </div>
+
+            <div class="form-group">
+              <label for="profile-description">About Me</label>
+              <textarea id="profile-description" placeholder="Write a short description about yourself..." rows="5" maxlength="250"></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="cancel-profile-btn">Cancel</button>
+              <button type="submit" id="save-profile-btn">Save Profile</button>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <!-- SEARCH OVERLAY -->
+  <div id="search-overlay" class="search-overlay invisible-page">
+    <div class="search-panel" role="dialog" aria-modal="true" aria-labelledby="search-heading">
+      <div class="search-header">
+        <div>
+          <p class="search-eyebrow">MY BOOK READER</p>
+          <h2 id="search-heading">Find your next read</h2>
+        </div>
+
+        <button id="close-search-btn" class="close-search-btn" type="button" aria-label="Close search">&times;</button>
+      </div>
+
+      <div class="search-input-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+
+        <input id="book-search-input" type="search" placeholder="Search by title, author, or genre..." autocomplete="off" aria-label="Search books">
+      </div>
+
+      <p class="search-hint">Search your bookshelf by title, author, or genre.</p>
+
+      <div id="search-results" class="search-results">
+        <p class="search-empty-state">Start typing to find a book.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN / REGISTER OVERLAY -->
+  <div id="auth-overlay" class="auth-overlay invisible-page">
+    <section class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <button id="close-auth-btn" class="close-auth-btn" type="button" aria-label="Close">&times;</button>
+      <p class="eyebrow">BOOKWORM ACCOUNT</p>
+      <h2 id="auth-title">Log in</h2>
+
+      <p id="auth-status" class="auth-status" aria-live="polite"></p>
+
+      <form id="auth-form">
+        <div id="auth-name-group" class="auth-field" hidden>
+          <label for="auth-name">Name</label>
+          <input id="auth-name" name="name" type="text" maxlength="80" autocomplete="name">
+        </div>
+
+        <div class="auth-field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" maxlength="254" autocomplete="email" required>
+        </div>
+
+        <div class="auth-field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" minlength="8" maxlength="200" autocomplete="current-password" required>
+        </div>
+
+        <button id="auth-submit-btn" class="auth-submit-btn" type="submit">Log in</button>
+      </form>
+
+      <p class="auth-switch-copy">
+        <span id="auth-switch-prompt">Need an account?</span>
+        <button id="auth-switch-btn" type="button">Create one</button>
+        <br>
+        <button type="button">Forgot Password</button>
+      </p>
+    </section>
+  </div>
+
+  <!-- EXISTING APPLICATION JAVASCRIPT -->
+  <script src="./script.js"></script>
+
+  <!-- GUEST PAGE STYLES -->
+  <style>
+    [hidden] {
+      display: none !important;
+    }
+
+    .guest-page {
+      min-height: calc(100vh - 80px);
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+    }
+
+    .guest-welcome {
+      width: min(100%, 620px);
+      text-align: center;
+      padding: clamp(28px, 6vw, 56px);
+      border-radius: 18px;
+    }
+
+    .guest-welcome h1 {
+      margin: 10px 0 14px;
+    }
+
+    .guest-welcome .muted {
+      max-width: 480px;
+      margin: 0 auto 24px;
+      line-height: 1.7;
+    }
+
+    .guest-welcome .auth-submit-btn {
+      cursor: pointer;
+    }
+
+    .guest-note {
+      margin-top: 16px;
+      font-size: 0.9rem;
+    }
+  </style>
+
+  <!-- GUEST ACCESS, GREETING, AND LOGOUT -->
+  <script>
+    (() => {
+      const guestPage = document.getElementById('guest-page');
+      const appLayout = document.getElementById('app-layout');
+
+      const profileButton = document.getElementById('profile-btn');
+      const searchButton = document.getElementById('search-btn');
+
+      const authOverlay = document.getElementById('auth-overlay');
+      const authForm = document.getElementById('auth-form');
+      const authStatus = document.getElementById('auth-status');
+
+      const authName = document.getElementById('auth-name');
+      const authEmail = document.getElementById('auth-email');
+
+      const loginButton = document.getElementById('guest-login-btn');
+      const accountButton = document.getElementById('account-btn');
+      const closeAuthButton = document.getElementById('close-auth-btn');
+
+      const homeTitle = document.getElementById('home-title');
+
+      let loginSubmitted = false;
+
+      function greetingForNow() {
+        const hour = new Date().getHours();
+
+        if (hour < 12) return 'Good morning';
+        if (hour < 17) return 'Good afternoon';
+
+        return 'Good evening';
+      }
+
+      function getReaderName() {
+        const profileName = document
+          .getElementById('profile-display-name')
+          ?.textContent
+          ?.trim();
+
+        const enteredName = authName?.value?.trim();
+        const email = authEmail?.value?.trim();
+
+        if (profileName && profileName.toLowerCase() !== 'reader') {
+          return profileName;
+        }
+
+        if (enteredName) return enteredName;
+
+        if (email && email.includes('@')) {
+          return email.split('@')[0];
+        }
+
+        return 'Reader';
+      }
+
+      function showAuthenticatedApp() {
+        guestPage.hidden = true;
+        appLayout.hidden = false;
+
+        profileButton.hidden = false;
+        searchButton.hidden = false;
+
+        homeTitle.textContent =
+          `${greetingForNow()}, ${getReaderName()}!`;
+
+        document.body.classList.add('is-authenticated');
+      }
+
+      function showGuestPage() {
+        guestPage.hidden = false;
+        appLayout.hidden = true;
+
+        profileButton.hidden = true;
+        searchButton.hidden = true;
+
+        document.body.classList.remove('is-authenticated');
+      }
+
+      // Start on the public welcome homepage.
+      showGuestPage();
+
+      // Open the existing login dialog.
+      loginButton?.addEventListener('click', () => {
+        accountButton?.click();
+      });
+
+      // Detect successful login when the existing script closes the dialog.
+      authForm?.addEventListener('submit', () => {
+        loginSubmitted = true;
+
+        window.setTimeout(() => {
+          if (
+            loginSubmitted &&
+            authOverlay.classList.contains('invisible-page')
+          ) {
+            const status = authStatus?.textContent?.trim() || '';
+
+            if (!/invalid|incorrect|failed|error|required|unable/i.test(status)) {
+              showAuthenticatedApp();
+              loginSubmitted = false;
+            }
+          }
+        }, 250);
+      });
+
+      // Watch for the existing authentication script closing the dialog.
+      const authObserver = new MutationObserver(() => {
+        if (
+          loginSubmitted &&
+          authOverlay.classList.contains('invisible-page')
+        ) {
+          window.setTimeout(() => {
+            const status = authStatus?.textContent?.trim() || '';
+
+            if (
+              loginSubmitted &&
+              authOverlay.classList.contains('invisible-page') &&
+              !/invalid|incorrect|failed|error|required|unable/i.test(status)
+            ) {
+              showAuthenticatedApp();
+              loginSubmitted = false;
+            }
+          }, 100);
+        }
+      });
+
+      authObserver.observe(authOverlay, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+
+      closeAuthButton?.addEventListener('click', () => {
+        loginSubmitted = false;
+      });
+
+      // LOG OUT: RETURN TO THE PUBLIC BOOKWORM HOMEPAGE.
+      // Capture the click before other script.js click handlers can interfere.
+      document.addEventListener('click', (event) => {
+        const logoutButton = event.target.closest('#logout-btn');
+
+        if (!logoutButton) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        // Hide the private application and show the welcome homepage.
+        loginSubmitted = false;
+        showGuestPage();
+
+        // Close login, search, book, and profile-edit overlays.
+        authOverlay.classList.add('invisible-page');
+        authOverlay.hidden = false;
+        authOverlay.removeAttribute('style');
+
+        document.getElementById('search-overlay')
+          ?.classList.add('invisible-page');
+
+        document.querySelector('.modal-overlay')
+          ?.classList.add('invisible-page');
+
+        document.getElementById('profile-edit-card')
+          ?.classList.add('invisible-page');
+
+        // Reset the login form.
+        authForm?.reset();
+
+        if (authStatus) authStatus.textContent = '';
+
+        const authTitle = document.getElementById('auth-title');
+        const authSubmitButton = document.getElementById('auth-submit-btn');
+        const authSwitchPrompt = document.getElementById('auth-switch-prompt');
+        const authSwitchButton = document.getElementById('auth-switch-btn');
+        const authNameGroup = document.getElementById('auth-name-group');
+        const authPassword = document.getElementById('auth-password');
+
+        if (authTitle) authTitle.textContent = 'Log in';
+        if (authSubmitButton) authSubmitButton.textContent = 'Log in';
+        if (authSwitchPrompt) {
+          authSwitchPrompt.textContent = 'Need an account?';
+        }
+        if (authSwitchButton) {
+          authSwitchButton.textContent = 'Create one';
+        }
+        if (authNameGroup) authNameGroup.hidden = true;
+
+        if (authPassword) {
+          authPassword.setAttribute('autocomplete', 'current-password');
+        }
+
+        if (accountButton) accountButton.textContent = 'Log in';
+
+        // Clear the dashboard URL fragment and return to the welcome page.
+        history.replaceState(
+          null,
+          '',
+          window.location.pathname + window.location.search
+        );
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'auto'
+        });
+      }, true);
+
+      // Update the greeting every minute.
+      window.setInterval(() => {
+        if (!appLayout.hidden) {
+          homeTitle.textContent =
+            `${greetingForNow()}, ${getReaderName()}!`;
+        }
+      }, 60000);
+    })();
+  </script>
+</body>
+</html>

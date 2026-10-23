@@ -2945,3 +2945,291 @@ renderBooks();
 loadStreak();
 loadAuthState();
 
+
+
+/* DARK MODE SETTING */
+const darkModeToggle = document.getElementById("dark-mode-toggle");
+
+if (darkModeToggle) {
+  const savedTheme = localStorage.getItem("bookworm-theme");
+
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+
+  function updateDarkModeButton() {
+    const isDark = document.body.classList.contains("dark-mode");
+
+    darkModeToggle.textContent = isDark
+      ? "☀️ Light Mode"
+      : "🌙 Dark Mode";
+
+    darkModeToggle.setAttribute("aria-pressed", String(isDark));
+  }
+
+  updateDarkModeButton();
+
+  darkModeToggle.addEventListener("click", function () {
+    const isDark = document.body.classList.toggle("dark-mode");
+
+    localStorage.setItem(
+      "bookworm-theme",
+      isDark ? "dark" : "light"
+    );
+
+    updateDarkModeButton();
+  });
+}
+// LOG OUT: OPEN THE LOGIN DIALOG
+document.addEventListener('click', function (event) {
+  const logoutButton = event.target.closest('#logout-btn');
+
+  if (!logoutButton) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+
+  const guestPage = document.getElementById('guest-page');
+  const appLayout = document.getElementById('app-layout');
+  const authOverlay = document.getElementById('auth-overlay');
+  const authForm = document.getElementById('auth-form');
+  const authStatus = document.getElementById('auth-status');
+  const authEmail = document.getElementById('auth-email');
+  const accountButton = document.getElementById('account-btn');
+
+  // Hide the dashboard and return to the guest page.
+  guestPage.hidden = false;
+  appLayout.hidden = true;
+
+  document.getElementById('profile-btn').hidden = true;
+  document.getElementById('search-btn').hidden = true;
+  document.body.classList.remove('is-authenticated');
+
+  // Close other overlays.
+  document.getElementById('search-overlay')
+    ?.classList.add('invisible-page');
+
+  document.querySelector('.modal-overlay')
+    ?.classList.add('invisible-page');
+
+  // Reset the login form.
+  authForm.reset();
+  authStatus.textContent = '';
+
+  document.getElementById('auth-title').textContent = 'Log in';
+  document.getElementById('auth-submit-btn').textContent = 'Log in';
+  document.getElementById('auth-name-group').hidden = true;
+  document.getElementById('auth-switch-prompt').textContent =
+    'Need an account?';
+  document.getElementById('auth-switch-btn').textContent = 'Create one';
+
+  accountButton.textContent = 'Log in';
+
+  // Force the login dialog to appear.
+  authOverlay.hidden = false;
+  authOverlay.classList.remove('invisible-page');
+  authOverlay.style.cssText += `
+    display: flex !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    align-items: center !important;
+    justify-content: center !important;
+  `;
+
+  history.replaceState(
+    null,
+    '',
+    window.location.pathname + window.location.search
+  );
+
+  window.scrollTo(0, 0);
+  authEmail.focus();
+}, true);
+
+/*- GUEST ACCESS AND TIME-BASED GREETING */
+  
+    (() => {
+      const guestPage = document.getElementById('guest-page');
+      const appLayout = document.getElementById('app-layout');
+
+      const profileButton = document.getElementById('profile-btn');
+      const searchButton = document.getElementById('search-btn');
+
+      const authOverlay = document.getElementById('auth-overlay');
+      const authForm = document.getElementById('auth-form');
+      const authStatus = document.getElementById('auth-status');
+
+      const authName = document.getElementById('auth-name');
+      const authEmail = document.getElementById('auth-email');
+
+      const loginButton = document.getElementById('guest-login-btn');
+      const accountButton = document.getElementById('account-btn');
+      const closeAuthButton = document.getElementById('close-auth-btn');
+
+      const homeTitle = document.getElementById('home-title');
+
+      let loginSubmitted = false;
+
+      function greetingForNow() {
+        const hour = new Date().getHours();
+
+        if (hour < 12) {
+          return 'Good morning';
+        }
+
+        if (hour < 17) {
+          return 'Good afternoon';
+        }
+
+        return 'Good evening';
+      }
+
+      function getReaderName() {
+        const profileName = document
+          .getElementById('profile-display-name')
+          ?.textContent
+          ?.trim();
+
+        const enteredName = authName?.value?.trim();
+        const email = authEmail?.value?.trim();
+
+        if (profileName && profileName.toLowerCase() !== 'reader') {
+          return profileName;
+        }
+
+        if (enteredName) {
+          return enteredName;
+        }
+
+        if (email && email.includes('@')) {
+          return email.split('@')[0];
+        }
+
+        return 'Reader';
+      }
+
+      function showAuthenticatedApp() {
+        guestPage.hidden = true;
+        appLayout.hidden = false;
+
+        profileButton.hidden = false;
+        searchButton.hidden = false;
+
+        homeTitle.textContent =
+          `${greetingForNow()}, ${getReaderName()}!`;
+
+        document.body.classList.add('is-authenticated');
+      }
+
+      function showGuestPage() {
+        guestPage.hidden = false;
+        appLayout.hidden = true;
+
+        profileButton.hidden = true;
+        searchButton.hidden = true;
+
+        document.body.classList.remove('is-authenticated');
+      }
+
+      // Start in guest mode.
+      showGuestPage();
+
+      // Open the existing login dialog.
+      loginButton?.addEventListener('click', () => {
+        accountButton?.click();
+      });
+
+      // Check whether submitting the login form closes the dialog.
+      authForm?.addEventListener('submit', () => {
+        loginSubmitted = true;
+
+        window.setTimeout(() => {
+          if (
+            loginSubmitted &&
+            authOverlay.classList.contains('invisible-page')
+          ) {
+            const status = authStatus?.textContent?.trim() || '';
+
+            if (!/invalid|incorrect|failed|error|required|unable/i.test(status)) {
+              showAuthenticatedApp();
+              loginSubmitted = false;
+            }
+          }
+        }, 250);
+      });
+
+      // Detect when the existing authentication script closes the dialog.
+      const authObserver = new MutationObserver(() => {
+        if (
+          loginSubmitted &&
+          authOverlay.classList.contains('invisible-page')
+        ) {
+          window.setTimeout(() => {
+            const status = authStatus?.textContent?.trim() || '';
+
+            if (
+              loginSubmitted &&
+              authOverlay.classList.contains('invisible-page') &&
+              !/invalid|incorrect|failed|error|required|unable/i.test(status)
+            ) {
+              showAuthenticatedApp();
+              loginSubmitted = false;
+            }
+          }, 100);
+        }
+      });
+
+      authObserver.observe(authOverlay, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+
+      // Closing the login dialog without submitting keeps the app hidden.
+      closeAuthButton?.addEventListener('click', () => {
+        loginSubmitted = false;
+      });
+
+      // LOG OUT AND RETURN TO THE HOMEPAGE
+      const logoutButton = document.getElementById('logout-btn');
+
+      logoutButton?.addEventListener('click', () => {
+        // Return to the guest homepage and hide the private app pages.
+        showGuestPage();
+
+        // Close login and search overlays.
+        authOverlay.classList.add('invisible-page');
+        document.getElementById('search-overlay')
+          ?.classList.add('invisible-page');
+
+        // Reset the login submission state and account button.
+        loginSubmitted = false;
+
+        if (accountButton) {
+          accountButton.textContent = 'Log in';
+        }
+
+        // Clear the URL hash and return to the top of the homepage.
+        history.replaceState(
+          null,
+          '',
+          window.location.pathname + window.location.search
+        );
+
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+
+      // Update the greeting every minute.
+      window.setInterval(() => {
+        if (!appLayout.hidden) {
+          homeTitle.textContent =
+            `${greetingForNow()}, ${getReaderName()}!`;
+        }
+      }, 60000);
+    })();
+
+

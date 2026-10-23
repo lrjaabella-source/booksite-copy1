@@ -6,5 +6,13 @@
     "salt": "709a967ae171baccc416bbeecc7036e3",
     "passwordHash": "aa3dc2a33e5a0881b549a6d19229c1885b1b6baf17a82506ae5eb0aece5153162eb126e59ed1fa804f10e775e731b35d8bb6c38b121bf95f9a00ab80de4ab6be",
     "createdAt": "2026-10-21T07:28:57.273Z"
+  },
+  {
+    "id": "46f9aa3f-2c9e-4d53-b420-1400b4df3e4c",
+    "name": "pol",
+    "email": "sample@sample.com",
+    "salt": "841b8d9a740b736f7896ec7cb6f6cbb0",
+    "passwordHash": "ba3b483b2f0a00949e5b69378411019bce35dc2fe4d2b8e144d0705e81f856c0e2c0fe1341b1b18e33978a8bfef3e8449b1e15452181464741043ba2acf7706f",
+    "createdAt": "2026-10-22T17:19:34.747Z"
   }
 ]
